@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { theme } from '../styles/theme';
-import { Product, CartItem } from '../types/types';
+import { Product, CartItem, BaseTransaction } from '../types/types';
 import CashRegister from '../components/CashRegister';
 import ProductGrid from '../components/ProductGrid';
 import ProductEditor from '../components/ProductEditor';
@@ -45,6 +45,23 @@ const Homepage: React.FC = () => {
   const handlePaymentComplete = (receivedAmount: number, changeAmount: number, tipAmount: number) => {
     const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const newBalance = cashBalance + total + tipAmount;
+    
+    // Erstelle eine Transaktion für jedes Produkt im Warenkorb
+    cartItems.forEach(item => {
+      // Berechne den anteiligen Trinkgeldanteil pro Produkt
+      const itemTotalPrice = item.price * item.quantity;
+      const itemTipShare = (itemTotalPrice / total) * tipAmount;
+      
+      const transaction: BaseTransaction = {
+        productId: item.id,
+        quantity: item.quantity,
+        price: item.price,
+        timestamp: new Date(),
+        tip: itemTipShare
+      };
+      
+      StorageService.saveTransaction(transaction);
+    });
     
     setCashBalance(newBalance);
     StorageService.saveCashBalance(newBalance);

@@ -4,18 +4,32 @@ export interface Product {
     price: number;
   }
   
-  export interface Transaction {
+  // Basistyp für Transaktionen
+  export interface BaseTransaction {
     productId: string;
     quantity: number;
     price: number;
     timestamp: Date;
+    tip: number;  // Trinkgeld wurde zu Basis hinzugefügt
+  }
+  
+  // Gespeicherter Transaktionstyp
+  export interface StoredTransaction extends Omit<BaseTransaction, 'timestamp'> {
+    timestamp: string;
+  }
+  
+  // Typ für die Statistik
+  export interface ProductStat {
+    productId: string;
+    productName: string;
+    quantity: number;
+    totalRevenue: number;
   }
   
   export interface CartItem extends Product {
     quantity: number;
   }
   
-  // Für das Bezahlfenster
   export interface PaymentOption {
     value: number;
     type: 'coin' | 'bill';

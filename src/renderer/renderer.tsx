@@ -5,8 +5,9 @@ import BurgerMenu from './components/BurgerMenu';
 import { MenuItem } from './components/BurgerMenu';
 import Homepage from './pages/Homepage';
 import Statistics from './pages/Statistics';
+import { theme } from './styles/theme';
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
   const navigate = useNavigate();
 
   const menuItems: MenuItem[] = [
@@ -32,21 +33,53 @@ const App: React.FC = () => {
   ];
 
   return (
-    <div>
-      <BurgerMenu items={menuItems} />
-      <Routes>
-        <Route path="/" element={<Homepage />} />
-        <Route path="/statistics" element={<Statistics />} />
-      </Routes>
+    <div style={{ 
+      minHeight: '100vh',
+      background: theme.colors.background,
+      display: 'flex',
+      flexDirection: 'column'
+    }}>
+      <header style={{
+        background: theme.colors.primary,
+        color: theme.colors.textLight,
+        padding: `${theme.spacing.md} ${theme.spacing.xl}`,
+        display: 'flex',
+        alignItems: 'center',
+        boxShadow: theme.shadows.medium,
+        height: '64px'
+      }}>
+        <BurgerMenu items={menuItems} />
+        <div style={{ 
+          marginLeft: '80px',
+          fontSize: '24px',
+          fontWeight: 500,
+          letterSpacing: '0.5px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: theme.spacing.sm
+        }}>
+          <span style={{ color: theme.colors.secondary }}>⭐</span>
+          Adventshaus-Kasse
+        </div>
+      </header>
+
+      <main style={{ 
+        flex: 1,
+        padding: theme.spacing.xl
+      }}>
+        <Routes>
+          <Route path="/" element={<Homepage />} />
+          <Route path="/statistics" element={<Statistics />} />
+        </Routes>
+      </main>
     </div>
   );
 };
 
-// Wrap the app with Router
-const AppWrapper: React.FC = () => {
+const App: React.FC = () => {
   return (
     <Router>
-      <App />
+      <AppContent />
     </Router>
   );
 };
@@ -55,6 +88,6 @@ window.addEventListener('DOMContentLoaded', () => {
   const container = document.getElementById('app');
   if (container) {
     const root = createRoot(container);
-    root.render(<AppWrapper />);
+    root.render(<App />);
   }
 });

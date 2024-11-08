@@ -33,20 +33,22 @@ const AppContent: React.FC = () => {
   ];
 
   return (
-    <div style={{ 
-      minHeight: '100vh',
-      background: theme.colors.background,
+    <div style={{
       display: 'flex',
-      flexDirection: 'column'
+      flexDirection: 'column',
+      height: '100vh',
+      overflow: 'hidden'
     }}>
+      {/* Header */}
       <header style={{
         background: theme.colors.primary,
         color: theme.colors.textLight,
-        padding: `${theme.spacing.md} ${theme.spacing.xl}`,
+        padding: `0 ${theme.spacing.xl}`,
+        height: '64px',
+        minHeight: '64px',
         display: 'flex',
         alignItems: 'center',
         boxShadow: theme.shadows.medium,
-        height: '64px'
       }}>
         <BurgerMenu items={menuItems} />
         <div style={{ 
@@ -59,13 +61,15 @@ const AppContent: React.FC = () => {
           gap: theme.spacing.sm
         }}>
           <span style={{ color: theme.colors.secondary }}>⭐</span>
-          Adventshaus-Kasse
+          Advent-Kasse
         </div>
       </header>
 
-      <main style={{ 
+      {/* Main Content */}
+      <main style={{
         flex: 1,
-        padding: theme.spacing.xl
+        overflow: 'hidden',
+        paddingTop: '8px'
       }}>
         <Routes>
           <Route path="/" element={<Homepage />} />

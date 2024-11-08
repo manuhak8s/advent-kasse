@@ -62,15 +62,12 @@ const Homepage: React.FC = () => {
       display: 'grid',
       gridTemplateColumns: '1fr 2fr',
       gap: theme.spacing.md,
-      padding: '8px',
-      height: 'calc(100vh - 72px)', // Korrektes Minus-Zeichen
-      maxHeight: 'calc(100vh - 72px)', // Korrektes Minus-Zeichen
-      maxWidth: '100vw',
-      overflow: 'hidden'
+      height: '100%',
+      padding: '0 8px 8px 8px',
+      overflow: 'hidden',
     }}>
       <div style={{ 
         height: '100%',
-        maxHeight: '100%',
         overflow: 'hidden'
       }}>
         <CashRegister
@@ -83,7 +80,6 @@ const Homepage: React.FC = () => {
       
       <div style={{ 
         height: '100%',
-        maxHeight: '100%',
         overflow: 'hidden'
       }}>
         <ProductGrid

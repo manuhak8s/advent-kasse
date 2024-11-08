@@ -42,9 +42,9 @@ const Homepage: React.FC = () => {
     setShowPaymentDialog(true);
   };
 
-  const handlePaymentComplete = (receivedAmount: number, changeAmount: number) => {
+  const handlePaymentComplete = (receivedAmount: number, changeAmount: number, tipAmount: number) => {
     const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const newBalance = cashBalance + total;
+    const newBalance = cashBalance + total + tipAmount;
     
     setCashBalance(newBalance);
     StorageService.saveCashBalance(newBalance);

@@ -6,7 +6,7 @@ import { PaymentOption, PAYMENT_OPTIONS } from '../types/types';
 interface PaymentDialogProps {
   total: number;
   onClose: () => void;
-  onComplete: (receivedAmount: number, changeAmount: number) => void;
+  onComplete: (receivedAmount: number, changeAmount: number, tipAmount: number) => void;
 }
 
 const PaymentDialog: React.FC<PaymentDialogProps> = ({
@@ -16,10 +16,20 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
 }) => {
   const [receivedAmount, setReceivedAmount] = useState(0);
   const [changeAmount, setChangeAmount] = useState(0);
+  const [tipAmount, setTipAmount] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+
+  const finalTotal = total + tipAmount;
 
   useEffect(() => {
-    setChangeAmount(Math.max(0, receivedAmount - total));
-  }, [receivedAmount, total]);
+    setChangeAmount(Math.max(0, receivedAmount - finalTotal));
+    
+    if (receivedAmount > 0 && receivedAmount < finalTotal) {
+      setError(`Noch ${(finalTotal - receivedAmount).toFixed(2)} € fehlen`);
+    } else {
+      setError(null);
+    }
+  }, [receivedAmount, finalTotal]);
 
   const overlayStyles: React.CSSProperties = {
     position: 'fixed',
@@ -45,18 +55,21 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
     overflow: 'auto'
   };
 
-  const headerStyles: React.CSSProperties = {
+  const tipSectionStyles: React.CSSProperties = {
     marginBottom: theme.spacing.lg,
+    padding: theme.spacing.md,
+    background: theme.colors.background,
+    borderRadius: '4px',
     display: 'flex',
-    justifyContent: 'space-between',
+    gap: theme.spacing.md,
     alignItems: 'center'
   };
 
-  const gridStyles: React.CSSProperties = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
-    gap: theme.spacing.md,
-    marginBottom: theme.spacing.xl
+  const tipInputStyles: React.CSSProperties = {
+    padding: theme.spacing.sm,
+    border: `1px solid ${theme.colors.border}`,
+    borderRadius: '4px',
+    width: '100px'
   };
 
   const amountDisplayStyles: React.CSSProperties = {
@@ -68,19 +81,54 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
     marginBottom: theme.spacing.md
   };
 
-  const handlePaymentOptionClick = (option: PaymentOption) => {
-    setReceivedAmount(prev => prev + option.value);
+  const gridStyles: React.CSSProperties = {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+    gap: theme.spacing.md,
+    marginBottom: theme.spacing.xl
+  };
+
+  const handleTipChange = (value: string) => {
+    const tip = parseFloat(value);
+    if (!isNaN(tip) && tip >= 0) {
+      setTipAmount(Number(tip.toFixed(2)));
+    } else {
+      setTipAmount(0);
+    }
   };
 
   return (
     <div style={overlayStyles}>
       <div style={dialogStyles}>
-        <div style={headerStyles}>
-          <h2 style={{ margin: 0 }}>Zahlung</h2>
-          <div style={amountDisplayStyles}>
-            <span>Zu zahlen:</span>
-            <span>{total.toFixed(2)} €</span>
-          </div>
+        <h2 style={{ marginTop: 0 }}>Zahlung</h2>
+
+        <div style={amountDisplayStyles}>
+          <span>Zu zahlen:</span>
+          <span>{total.toFixed(2)} €</span>
+        </div>
+
+        <div style={tipSectionStyles}>
+          <span style={{ fontWeight: 500 }}>Trinkgeld:</span>
+          <input
+            type="number"
+            step="0.01"
+            min="0"
+            placeholder="0.00"
+            value={tipAmount || ''}
+            onChange={(e) => handleTipChange(e.target.value)}
+            style={tipInputStyles}
+          />
+          <span>€</span>
+        </div>
+
+        <div style={{
+          ...amountDisplayStyles,
+          fontWeight: 'bold',
+          background: theme.colors.primary,
+          color: theme.colors.textLight
+        }}>
+          <span>Gesamt:</span>
+          <span>{finalTotal.toFixed(2)} €</span>
         </div>
 
         <div style={amountDisplayStyles}>
@@ -93,11 +141,24 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
           <span>{changeAmount.toFixed(2)} €</span>
         </div>
 
+        {error && (
+          <div style={{
+            color: theme.colors.error,
+            padding: theme.spacing.md,
+            marginBottom: theme.spacing.md,
+            background: 'rgba(204, 59, 59, 0.1)',
+            borderRadius: '4px',
+            textAlign: 'center'
+          }}>
+            {error}
+          </div>
+        )}
+
         <div style={gridStyles}>
           {PAYMENT_OPTIONS.map((option, index) => (
             <button
               key={index}
-              onClick={() => handlePaymentOptionClick(option)}
+              onClick={() => setReceivedAmount(prev => prev + option.value)}
               style={{
                 padding: theme.spacing.md,
                 border: `1px solid ${theme.colors.border}`,
@@ -115,20 +176,41 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
         <div style={{ display: 'flex', gap: theme.spacing.md }}>
           <button
             onClick={() => {
-              onComplete(receivedAmount, changeAmount);
-              onClose();
+              if (receivedAmount >= finalTotal) {
+                onComplete(receivedAmount, changeAmount, tipAmount);
+              }
+            }}
+            disabled={receivedAmount < finalTotal}
+            style={{
+              flex: 1,
+              padding: theme.spacing.md,
+              background: receivedAmount < finalTotal ? theme.colors.border : theme.colors.primary,
+              color: receivedAmount < finalTotal ? theme.colors.text : theme.colors.textLight,
+              border: 'none',
+              borderRadius: '4px',
+              cursor: receivedAmount < finalTotal ? 'not-allowed' : 'pointer',
+              opacity: receivedAmount < finalTotal ? 0.7 : 1
+            }}
+          >
+            Abschließen
+          </button>
+          <button
+            onClick={() => {
+              setReceivedAmount(0);
+              setChangeAmount(0);
+              setTipAmount(0);
             }}
             style={{
               flex: 1,
               padding: theme.spacing.md,
-              background: theme.colors.primary,
+              background: theme.colors.secondary,
               color: theme.colors.textLight,
               border: 'none',
               borderRadius: '4px',
               cursor: 'pointer'
             }}
           >
-            Abschließen
+            Zurücksetzen
           </button>
           <button
             onClick={onClose}

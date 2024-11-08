@@ -5,8 +5,8 @@
   "main": "dist/main/main.js",
   "scripts": {
     "start": "electron .",
-    "build": "tsc",
-    "watch": "tsc -w",
+    "build": "webpack --config webpack.config.js",
+    "watch": "webpack --watch",
     "dev": "concurrently \"npm run watch\" \"nodemon --watch dist --exec electron .\"",
     "dev:fresh": "rm -rf dist && npm run dev",
     "pack": "electron-builder --dir",
@@ -51,11 +51,21 @@
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^22.9.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
     "concurrently": "^9.1.0",
     "electron": "^33.2.0",
     "electron-builder": "^25.1.8",
     "electron-reload": "^2.0.0-alpha.1",
     "nodemon": "^3.1.7",
-    "typescript": "^5.6.3"
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.6.3",
+    "webpack": "^5.96.1",
+    "webpack-cli": "^5.1.4"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.28.0"
   }
 }

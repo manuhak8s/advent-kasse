@@ -1,42 +1,39 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import * as path from 'path';
 
 function createWindow() {
-    // Create the browser window.
-    const mainWindow = new BrowserWindow({
-        width: 1200,
-        height: 800,
-        webPreferences: {
-            nodeIntegration: true,
-            contextIsolation: false
-        }
-    });
+  const mainWindow = new BrowserWindow({
+    width: 1200,
+    height: 800,
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js')
+    }
+  });
 
-    console.log('Loading index.html from:', path.join(__dirname, '../../public/index.html'));
-    
-    // und lade die index.html der App.
-    mainWindow.loadFile(path.join(__dirname, '../../public/index.html'));
-    
-    // Öffne die DevTools.
-    mainWindow.webContents.openDevTools();
+  mainWindow.loadFile(path.join(__dirname, '../../public/index.html'));
+  mainWindow.webContents.openDevTools();
 }
 
-// Diese Methode wird aufgerufen, wenn Electron mit der
-// Initialisierung fertig ist und Browserfenster erschaffen kann.
 app.whenReady().then(() => {
-    console.log('App is ready');
-    createWindow();
+  console.log('App is ready');
+  createWindow();
 });
 
-// Beenden, wenn alle Fenster geschlossen sind.
+// IPC Handler für das Beenden der App
+ipcMain.on('quit-app', () => {
+  app.quit();
+});
+
 app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') {
-        app.quit();
-    }
+  if (process.platform !== 'darwin') {
+    app.quit();
+  }
 });
 
 app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-        createWindow();
-    }
+  if (BrowserWindow.getAllWindows().length === 0) {
+    createWindow();
+  }
 });

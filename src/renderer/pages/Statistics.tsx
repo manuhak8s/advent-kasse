@@ -148,12 +148,12 @@ const Statistics: React.FC = () => {
   });
 
   const contentRef = useRef<HTMLDivElement>(null);
+  const pdfContentRef = useRef<HTMLDivElement>(null);
 
   const handleExportPDF = async () => {
-    if (!contentRef.current) return;
+    if (!pdfContentRef.current) return;
 
     try {
-      // Erstelle einen Loading-Indikator
       const loadingDiv = document.createElement('div');
       loadingDiv.style.position = 'fixed';
       loadingDiv.style.top = '50%';
@@ -167,24 +167,21 @@ const Statistics: React.FC = () => {
       loadingDiv.textContent = 'Erstelle PDF...';
       document.body.appendChild(loadingDiv);
 
-      // Aktuelle Zeit für den Dateinamen
       const date = new Date();
       const dateStr = date.toLocaleDateString('de-DE').replace(/\./g, '-');
       const timeStr = date.toLocaleTimeString('de-DE').replace(/:/g, '-');
 
-      // PDF erstellen
-      const content = contentRef.current;
-      const canvas = await html2canvas(content, {
+      const canvas = await html2canvas(pdfContentRef.current, {
         scale: 2,
         useCORS: true,
         logging: false,
-        backgroundColor: theme.colors.background
+        backgroundColor: '#ffffff'
       });
 
-      const imgWidth = 210; // A4 Breite in mm
+      const imgWidth = 210; // A4 width in mm
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       const pdf = new jsPDF({
-        orientation: imgHeight > imgWidth ? 'portrait' : 'landscape',
+        orientation: 'portrait',
         unit: 'mm',
         format: 'a4'
       });
@@ -192,10 +189,7 @@ const Statistics: React.FC = () => {
       const imgData = canvas.toDataURL('image/png');
       pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
 
-      // PDF speichern
-      pdf.save(`Statistik_${dateStr}_${timeStr}.pdf`);
-
-      // Loading-Indikator entfernen
+      pdf.save(`Advent-Kasse_Statistik_${dateStr}.pdf`);
       document.body.removeChild(loadingDiv);
     } catch (error) {
       console.error('Fehler beim PDF-Export:', error);
@@ -203,38 +197,99 @@ const Statistics: React.FC = () => {
     }
   };
 
-  return (
-    <div style={{ padding: theme.spacing.lg, display: 'flex', flexDirection: 'column', gap: theme.spacing.xl }}>
-      {/* Export Button */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <button
-          onClick={handleExportPDF}
-          style={{
-            padding: `${theme.spacing.sm} ${theme.spacing.lg}`,
-            background: theme.colors.secondary,
-            color: theme.colors.textLight,
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            fontSize: '0.9rem'
-          }}
-        >
-          <span style={{ fontSize: '1.2em' }}>📄</span>
-          Als PDF exportieren
-        </button>
-      </div>
+  // Styles für das PDF-Layout
+  const pdfStyles = {
+    container: {
+      padding: '20px',
+      background: '#ffffff',
+      fontFamily: 'Arial, sans-serif',
+      maxWidth: '800px',
+      margin: '0 auto'
+    },
+    header: {
+      textAlign: 'center' as const,
+      marginBottom: '30px',
+      borderBottom: '2px solid #333',
+      paddingBottom: '10px'
+    },
+    headerTitle: {
+      fontSize: '24px',
+      marginBottom: '10px'
+    },
+    headerDate: {
+      fontSize: '14px',
+      color: '#666'
+    },
+    kpiContainer: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(3, 1fr)',
+      gap: '20px',
+      marginBottom: '30px'
+    },
+    kpiCard: {
+      padding: '15px',
+      background: '#f8f9fa',
+      borderRadius: '8px',
+      border: '1px solid #dee2e6'
+    },
+    kpiLabel: {
+      fontSize: '14px',
+      color: '#495057',
+      marginBottom: '5px'
+    },
+    kpiValue: {
+      fontSize: '20px',
+      fontWeight: 'bold' as const,
+      color: '#0F4C3A'
+    },
+    table: {
+      width: '100%',
+      borderCollapse: 'collapse' as const,
+      marginTop: '20px'
+    },
+    th: {
+      backgroundColor: '#f8f9fa',
+      padding: '12px',
+      borderBottom: '2px solid #dee2e6',
+      textAlign: 'left' as const,
+      fontSize: '14px'
+    },
+    td: {
+      padding: '12px',
+      borderBottom: '1px solid #dee2e6',
+      fontSize: '14px'
+    }
+  };
 
-      {/* Zu exportierender Content */}
-      <div ref={contentRef}>
+  return (
+    <>
+      {/* Normale Ansicht */}
+      <div style={{ padding: theme.spacing.lg, display: 'flex', flexDirection: 'column', gap: theme.spacing.xl }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <button
+            onClick={handleExportPDF}
+            style={{
+              padding: `${theme.spacing.sm} ${theme.spacing.lg}`,
+              background: theme.colors.secondary,
+              color: theme.colors.textLight,
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+          >
+            <span>📄</span>
+            Als PDF exportieren
+          </button>
+        </div>
+
         {/* KPI Kacheln */}
         <div style={{ 
           display: 'grid', 
           gridTemplateColumns: 'repeat(3, 1fr)', 
-          gap: theme.spacing.lg,
-          marginBottom: theme.spacing.xl
+          gap: theme.spacing.lg 
         }}>
           <div style={kpiCardStyles}>
             <div style={kpiLabelStyles}>Verkaufte Produkte</div>
@@ -264,13 +319,34 @@ const Statistics: React.FC = () => {
             marginBottom: theme.spacing.lg 
           }}>
             <h3 style={{ margin: 0 }}>Verkaufte Produkte</h3>
-            {/* Sortier-Buttons werden im PDF nicht benötigt */}
+            <div style={{ display: 'flex', gap: theme.spacing.sm }}>
+              <button 
+                onClick={() => handleSort('quantity')}
+                style={{
+                  ...sortButtonStyles,
+                  fontWeight: sortType === 'quantity' ? 'bold' : 'normal'
+                }}
+              >
+                Nach Anzahl sortieren
+                <span style={sortIconStyles(sortType === 'quantity')}>
+                  {sortDirection === 'desc' ? '↓' : '↑'}
+                </span>
+              </button>
+              <button 
+                onClick={() => handleSort('revenue')}
+                style={{
+                  ...sortButtonStyles,
+                  fontWeight: sortType === 'revenue' ? 'bold' : 'normal'
+                }}
+              >
+                Nach Umsatz sortieren
+                <span style={sortIconStyles(sortType === 'revenue')}>
+                  {sortDirection === 'desc' ? '↓' : '↑'}
+                </span>
+              </button>
+            </div>
           </div>
-          <table style={{ 
-            width: '100%', 
-            borderCollapse: 'collapse',
-            fontSize: '12px'  // Kleinere Schrift für bessere PDF-Lesbarkeit
-          }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ 
                 background: theme.colors.background,
@@ -296,7 +372,55 @@ const Statistics: React.FC = () => {
           </table>
         </div>
       </div>
-    </div>
+
+        
+        {/* ... Rest der normalen Ansicht ... */}
+     
+
+      {/* Versteckte PDF-Version */}
+      <div ref={pdfContentRef} style={{ ...pdfStyles.container, position: 'absolute', left: '-9999px' }}>
+        <div style={pdfStyles.header}>
+          <div style={pdfStyles.headerTitle}>Advent-Kasse - Statistikbericht</div>
+          <div style={pdfStyles.headerDate}>
+            Erstellt am: {new Date().toLocaleDateString('de-DE')} um {new Date().toLocaleTimeString('de-DE')}
+          </div>
+        </div>
+
+        <div style={pdfStyles.kpiContainer}>
+          <div style={pdfStyles.kpiCard}>
+            <div style={pdfStyles.kpiLabel}>Verkaufte Produkte</div>
+            <div style={pdfStyles.kpiValue}>{stats.totalProducts}</div>
+          </div>
+          <div style={pdfStyles.kpiCard}>
+            <div style={pdfStyles.kpiLabel}>Gesamteinnahmen</div>
+            <div style={pdfStyles.kpiValue}>{stats.totalRevenue.toFixed(2)} €</div>
+          </div>
+          <div style={pdfStyles.kpiCard}>
+            <div style={pdfStyles.kpiLabel}>Trinkgeld</div>
+            <div style={pdfStyles.kpiValue}>{stats.totalTips.toFixed(2)} €</div>
+          </div>
+        </div>
+
+        <table style={pdfStyles.table}>
+          <thead>
+            <tr>
+              <th style={pdfStyles.th}>Produkt</th>
+              <th style={pdfStyles.th}>Anzahl</th>
+              <th style={pdfStyles.th}>Umsatz</th>
+            </tr>
+          </thead>
+          <tbody>
+            {stats.productStats.map((product, index) => (
+              <tr key={product.productId}>
+                <td style={pdfStyles.td}>{product.productName}</td>
+                <td style={pdfStyles.td}>{product.quantity}</td>
+                <td style={pdfStyles.td}>{product.totalRevenue.toFixed(2)} €</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 };
 

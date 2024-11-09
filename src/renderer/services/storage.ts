@@ -49,5 +49,9 @@ export const StorageService = {
       return parseFloat(stored);
     }
     return 0;
+  },
+
+  clearTransactions: (): void => {
+    localStorage.setItem('transactions', '[]');
   }
 };

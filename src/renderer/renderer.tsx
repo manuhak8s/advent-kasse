@@ -5,6 +5,7 @@ import BurgerMenu from './components/BurgerMenu';
 import { MenuItem } from './components/BurgerMenu';
 import Homepage from './pages/Homepage';
 import Statistics from './pages/Statistics';
+import Settings from './pages/Settings';
 import { theme } from './styles/theme';
 
 const AppContent: React.FC = () => {
@@ -19,6 +20,11 @@ const AppContent: React.FC = () => {
     {
       label: 'Statistik',
       onClick: () => navigate('/statistics'),
+      type: 'navigation' as const
+    },
+    {
+      label: 'Einstellungen',
+      onClick: () => navigate('/settings'),
       type: 'navigation' as const
     },
     {
@@ -74,6 +80,7 @@ const AppContent: React.FC = () => {
         <Routes>
           <Route path="/" element={<Homepage />} />
           <Route path="/statistics" element={<Statistics />} />
+          <Route path="/settings" element={<Settings />} />
         </Routes>
       </main>
     </div>

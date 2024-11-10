@@ -74,6 +74,22 @@ const Homepage: React.FC = () => {
     StorageService.saveProducts(newProducts);
   };
 
+  const handleRemoveItem = (itemToRemove: CartItem) => {
+    setCartItems(prevItems => {
+      if (itemToRemove.quantity > 1) {
+        // Wenn Menge > 1, reduziere die Menge um 1
+        return prevItems.map(item =>
+          item.id === itemToRemove.id
+            ? { ...item, quantity: item.quantity - 1 }
+            : item
+        );
+      } else {
+        // Wenn Menge = 1, entferne das Item komplett
+        return prevItems.filter(item => item.id !== itemToRemove.id);
+      }
+    });
+  };
+
   return (
     <div style={{
       display: 'grid',
@@ -92,6 +108,7 @@ const Homepage: React.FC = () => {
           cartItems={cartItems}
           onClearCart={handleClearCart}
           onCheckout={handleCheckout}
+          onRemoveItem={handleRemoveItem}
         />
       </div>
       

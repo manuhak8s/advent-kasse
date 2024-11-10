@@ -8,34 +8,29 @@ interface CashRegisterProps {
   cartItems: CartItem[];
   onClearCart: () => void;
   onCheckout: () => void;
+  onRemoveItem: (item: CartItem) => void;  // Neue Prop für das Entfernen einzelner Items
 }
 
 const CashRegister: React.FC<CashRegisterProps> = ({
   cashBalance,
   cartItems,
   onClearCart,
-  onCheckout
+  onCheckout,
+  onRemoveItem
 }) => {
-    const containerStyles: React.CSSProperties = {
-        background: theme.colors.surface,
-        padding: theme.spacing.md,
-        borderRadius: '8px',
-        boxShadow: theme.shadows.medium,
-        border: `1px solid ${theme.colors.border}`,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: theme.spacing.md,
-        height: '100%',
-        maxHeight: '100%',
-        overflow: 'hidden'
-      };
-      
-      const cartStyles: React.CSSProperties = {
-        flex: 1,
-        overflowY: 'auto',
-        minHeight: 0, // Wichtig für Flex-Container
-        padding: theme.spacing.sm
-      };
+  const containerStyles: React.CSSProperties = {
+    background: theme.colors.surface,
+    padding: theme.spacing.lg,
+    borderRadius: '8px',
+    boxShadow: theme.shadows.medium,
+    border: `1px solid ${theme.colors.border}`,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: theme.spacing.md,
+    height: '100%',
+    maxHeight: '100%',
+    overflow: 'hidden'
+  };
 
   const headerStyles: React.CSSProperties = {
     fontSize: '18px',
@@ -48,11 +43,43 @@ const CashRegister: React.FC<CashRegisterProps> = ({
     borderBottom: `1px solid ${theme.colors.border}`
   };
 
+  const cartStyles: React.CSSProperties = {
+    flex: 1,
+    overflowY: 'auto',
+    minHeight: 0,
+    padding: theme.spacing.sm
+  };
+
   const cartItemStyles: React.CSSProperties = {
     display: 'flex',
     justifyContent: 'space-between',
+    alignItems: 'center',
     padding: theme.spacing.sm,
-    borderBottom: `1px solid ${theme.colors.border}`
+    borderBottom: `1px solid ${theme.colors.border}`,
+    gap: theme.spacing.md
+  };
+
+  const deleteButtonStyles: React.CSSProperties = {
+    background: theme.colors.error,
+    color: theme.colors.textLight,
+    border: 'none',
+    borderRadius: '4px',
+    width: '24px',
+    height: '24px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    fontWeight: 'bold',
+    padding: 0,
+    fontSize: '16px'
+  };
+
+  const itemInfoStyles: React.CSSProperties = {
+    flex: 1,
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center'
   };
 
   const totalStyles: React.CSSProperties = {
@@ -69,7 +96,7 @@ const CashRegister: React.FC<CashRegisterProps> = ({
     padding: theme.spacing.md
   };
 
-  const buttonStyles = (isCancel: boolean): React.CSSProperties => ({
+  const actionButtonStyles = (isCancel: boolean): React.CSSProperties => ({
     flex: 1,
     padding: theme.spacing.md,
     border: 'none',
@@ -92,9 +119,18 @@ const CashRegister: React.FC<CashRegisterProps> = ({
 
       <div style={cartStyles}>
         {cartItems.map((item, index) => (
-          <div key={index} style={cartItemStyles}>
-            <span>{item.quantity}x {item.name}</span>
-            <span>{(item.price * item.quantity).toFixed(2)} €</span>
+          <div key={`${item.id}-${index}`} style={cartItemStyles}>
+            <button 
+              style={deleteButtonStyles}
+              onClick={() => onRemoveItem(item)}
+              title="Produkt entfernen"
+            >
+              −
+            </button>
+            <div style={itemInfoStyles}>
+              <span>{item.quantity}x {item.name}</span>
+              <span>{(item.price * item.quantity).toFixed(2)} €</span>
+            </div>
           </div>
         ))}
       </div>
@@ -106,13 +142,13 @@ const CashRegister: React.FC<CashRegisterProps> = ({
 
       <div style={buttonContainerStyles}>
         <button 
-          style={buttonStyles(true)}
+          style={actionButtonStyles(true)}
           onClick={onClearCart}
         >
           Storno
         </button>
         <button 
-          style={buttonStyles(false)}
+          style={actionButtonStyles(false)}
           onClick={onCheckout}
         >
           Buchen

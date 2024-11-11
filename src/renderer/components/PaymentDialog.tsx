@@ -9,6 +9,63 @@ interface PaymentDialogProps {
   onComplete: (receivedAmount: number, changeAmount: number, tipAmount: number) => void;
 }
 
+interface CustomCheckboxProps {
+  id: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  label: string;
+}
+
+const CustomCheckbox: React.FC<CustomCheckboxProps> = ({
+  id,
+  checked,
+  onChange,
+  label
+}) => {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <div
+        style={{
+          width: '20px',
+          height: '20px',
+          border: `2px solid ${theme.colors.border}`,
+          borderRadius: '4px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          background: checked ? theme.colors.primary : 'white',
+        }}
+        onClick={() => onChange(!checked)}
+      >
+        {checked && (
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 14 14"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M11.6666 3.5L5.24992 9.91667L2.33325 7"
+              stroke="white"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        )}
+      </div>
+      <label
+        htmlFor={id}
+        style={{ cursor: 'pointer', userSelect: 'none' }}
+      >
+        {label}
+      </label>
+    </div>
+  );
+};
+
 const PaymentDialog: React.FC<PaymentDialogProps> = ({
   total,
   onClose,
@@ -18,8 +75,27 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
   const [changeAmount, setChangeAmount] = useState(0);
   const [tipAmount, setTipAmount] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [roundUp, setRoundUp] = useState(false);
 
-  const finalTotal = total + tipAmount;
+  const getRoundUpDetails = (amount: number) => {
+    const roundedAmount = Math.ceil(amount);
+    const tipDifference = roundedAmount - amount;
+    return {
+      total: roundedAmount,
+      tip: tipDifference
+    };
+  };
+
+  useEffect(() => {
+    if (roundUp) {
+      const { tip } = getRoundUpDetails(total + tipAmount);
+      setTipAmount(Number(tip.toFixed(2)));
+    }
+  }, [roundUp, total]);
+
+  const finalTotal = roundUp 
+    ? Math.ceil(total + tipAmount)
+    : total + tipAmount;
 
   useEffect(() => {
     setChangeAmount(Math.max(0, receivedAmount - finalTotal));
@@ -50,26 +126,27 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
     borderRadius: '8px',
     boxShadow: theme.shadows.large,
     width: '90%',
-    maxWidth: '600px',
+    maxWidth: '900px',
     maxHeight: '90vh',
     overflow: 'auto'
   };
 
-  const tipSectionStyles: React.CSSProperties = {
-    marginBottom: theme.spacing.lg,
-    padding: theme.spacing.md,
-    background: theme.colors.background,
-    borderRadius: '4px',
-    display: 'flex',
-    gap: theme.spacing.md,
-    alignItems: 'center'
+  const containerStyles: React.CSSProperties = {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: theme.spacing.xl,
   };
 
-  const tipInputStyles: React.CSSProperties = {
-    padding: theme.spacing.sm,
-    border: `1px solid ${theme.colors.border}`,
-    borderRadius: '4px',
-    width: '100px'
+  const leftColumnStyles: React.CSSProperties = {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: theme.spacing.md,
+  };
+
+  const rightColumnStyles: React.CSSProperties = {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: theme.spacing.md,
   };
 
   const amountDisplayStyles: React.CSSProperties = {
@@ -78,21 +155,33 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
     padding: theme.spacing.md,
     background: theme.colors.background,
     borderRadius: '4px',
-    marginBottom: theme.spacing.md
   };
 
   const gridStyles: React.CSSProperties = {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+    gridTemplateColumns: 'repeat(3, 1fr)',
     gap: theme.spacing.md,
-    marginBottom: theme.spacing.xl
+  };
+
+  const buttonStyles: React.CSSProperties = {
+    display: 'flex',
+    gap: theme.spacing.md,
+    marginTop: theme.spacing.xl,
   };
 
   const handleTipChange = (value: string) => {
     const tip = parseFloat(value);
     if (!isNaN(tip) && tip >= 0) {
       setTipAmount(Number(tip.toFixed(2)));
+      setRoundUp(false);
     } else {
+      setTipAmount(0);
+    }
+  };
+
+  const handleRoundUpChange = (checked: boolean) => {
+    setRoundUp(checked);
+    if (!checked) {
       setTipAmount(0);
     }
   };
@@ -100,80 +189,110 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
   return (
     <div style={overlayStyles}>
       <div style={dialogStyles}>
-        <h2 style={{ marginTop: 0 }}>Zahlung</h2>
+        <h2 style={{ marginTop: 0, marginBottom: theme.spacing.xl }}>Zahlung</h2>
 
-        <div style={amountDisplayStyles}>
-          <span>Zu zahlen:</span>
-          <span>{total.toFixed(2)} €</span>
-        </div>
+        <div style={containerStyles}>
+          <div style={leftColumnStyles}>
+            <div style={amountDisplayStyles}>
+              <span>Zu zahlen:</span>
+              <span>{total.toFixed(2)} €</span>
+            </div>
 
-        <div style={tipSectionStyles}>
-          <span style={{ fontWeight: 500 }}>Trinkgeld:</span>
-          <input
-            type="number"
-            step="0.01"
-            min="0"
-            placeholder="0.00"
-            value={tipAmount || ''}
-            onChange={(e) => handleTipChange(e.target.value)}
-            style={tipInputStyles}
-          />
-          <span>€</span>
-        </div>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: theme.spacing.md,
+              padding: theme.spacing.md,
+              background: theme.colors.background,
+              borderRadius: '4px',
+            }}>
+              <span style={{ fontWeight: 500 }}>Trinkgeld:</span>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="0.00"
+                value={tipAmount || ''}
+                onChange={(e) => handleTipChange(e.target.value)}
+                style={{
+                  padding: theme.spacing.sm,
+                  border: `1px solid ${theme.colors.border}`,
+                  borderRadius: '4px',
+                  width: '100px'
+                }}
+              />
+              <span>€</span>
+            </div>
 
-        <div style={{
-          ...amountDisplayStyles,
-          fontWeight: 'bold',
-          background: theme.colors.primary,
-          color: theme.colors.textLight
-        }}>
-          <span>Gesamt:</span>
-          <span>{finalTotal.toFixed(2)} €</span>
-        </div>
+            <div style={{
+              padding: theme.spacing.md,
+              background: theme.colors.background,
+              borderRadius: '4px',
+            }}>
+              <CustomCheckbox
+                id="roundup"
+                checked={roundUp}
+                onChange={handleRoundUpChange}
+                label="Aufrunden"
+              />
+            </div>
 
-        <div style={amountDisplayStyles}>
-          <span>Erhalten:</span>
-          <span>{receivedAmount.toFixed(2)} €</span>
-        </div>
+            <div style={{
+              ...amountDisplayStyles,
+              fontWeight: 'bold',
+              background: theme.colors.primary,
+              color: theme.colors.textLight
+            }}>
+              <span>Gesamt:</span>
+              <span>{finalTotal.toFixed(2)} €</span>
+            </div>
 
-        <div style={amountDisplayStyles}>
-          <span>Rückgeld:</span>
-          <span>{changeAmount.toFixed(2)} €</span>
-        </div>
+            <div style={amountDisplayStyles}>
+              <span>Erhalten:</span>
+              <span>{receivedAmount.toFixed(2)} €</span>
+            </div>
 
-        {error && (
-          <div style={{
-            color: theme.colors.error,
-            padding: theme.spacing.md,
-            marginBottom: theme.spacing.md,
-            background: 'rgba(204, 59, 59, 0.1)',
-            borderRadius: '4px',
-            textAlign: 'center'
-          }}>
-            {error}
-          </div>
-        )}
+            <div style={amountDisplayStyles}>
+              <span>Rückgeld:</span>
+              <span>{changeAmount.toFixed(2)} €</span>
+            </div>
 
-        <div style={gridStyles}>
-          {PAYMENT_OPTIONS.map((option, index) => (
-            <button
-              key={index}
-              onClick={() => setReceivedAmount(prev => prev + option.value)}
-              style={{
+            {error && (
+              <div style={{
+                color: theme.colors.error,
                 padding: theme.spacing.md,
-                border: `1px solid ${theme.colors.border}`,
+                background: 'rgba(204, 59, 59, 0.1)',
                 borderRadius: '4px',
-                background: option.type === 'bill' ? theme.colors.primary : theme.colors.secondary,
-                color: theme.colors.textLight,
-                cursor: 'pointer'
-              }}
-            >
-              {option.label}
-            </button>
-          ))}
+                textAlign: 'center'
+              }}>
+                {error}
+              </div>
+            )}
+          </div>
+
+          <div style={rightColumnStyles}>
+            <div style={gridStyles}>
+              {PAYMENT_OPTIONS.map((option, index) => (
+                <button
+                  key={index}
+                  onClick={() => setReceivedAmount(prev => prev + option.value)}
+                  style={{
+                    padding: theme.spacing.md,
+                    border: `1px solid ${theme.colors.border}`,
+                    borderRadius: '4px',
+                    background: option.type === 'bill' ? theme.colors.primary : theme.colors.secondary,
+                    color: theme.colors.textLight,
+                    cursor: 'pointer'
+                  }}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
-        <div style={{ display: 'flex', gap: theme.spacing.md }}>
+        <div style={buttonStyles}>
           <button
             onClick={() => {
               if (receivedAmount >= finalTotal) {
@@ -199,6 +318,7 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
               setReceivedAmount(0);
               setChangeAmount(0);
               setTipAmount(0);
+              setRoundUp(false);
             }}
             style={{
               flex: 1,

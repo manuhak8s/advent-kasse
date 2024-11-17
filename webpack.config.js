@@ -1,44 +1,37 @@
 const path = require('path');
 
-const mainConfig = {
-  mode: 'development',
-  entry: './src/main/main.ts',
-  target: 'electron-main',
+const commonConfig = {
+  mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
   module: {
     rules: [{
       test: /\.tsx?$/,
       exclude: /node_modules/,
-      use: 'ts-loader'
+      use: 'ts-loader',
     }]
-  },
-  output: {
-    filename: 'main.js',
-    path: path.resolve(__dirname, 'dist/main')
   },
   resolve: {
     extensions: ['.tsx', '.ts', '.js']
+  },
+  devtool: 'source-map'
+};
+
+const mainConfig = {
+  ...commonConfig,
+  target: 'electron-main',
+  entry: './src/main/main.ts',
+  output: {
+    filename: 'main.js',
+    path: path.resolve(__dirname, 'dist/main')
   }
 };
 
 const rendererConfig = {
-  mode: 'development',
-  entry: './src/renderer/renderer.tsx',
+  ...commonConfig,
   target: 'web',
-  module: {
-    rules: [{
-      test: /\.tsx?$/,
-      exclude: /node_modules/,
-      use: 'ts-loader'
-    }]
-  },
+  entry: './src/renderer/renderer.tsx',
   output: {
     filename: 'renderer.js',
-    path: path.resolve(__dirname, 'dist/renderer'),
-    libraryTarget: 'umd',  // Wichtig für die Kompatibilität
-    globalObject: 'this'   // Wichtig für die Kompatibilität
-  },
-  resolve: {
-    extensions: ['.tsx', '.ts', '.js']
+    path: path.resolve(__dirname, 'dist/renderer')
   }
 };
 

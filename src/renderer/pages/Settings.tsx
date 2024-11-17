@@ -50,6 +50,12 @@ const Settings: React.FC = () => {
     });
   };
 
+  const getProductName = (productId: string): string => {
+    const products = StorageService.loadProducts();
+    const product = products.find(p => p.id === productId);
+    return product ? product.name : 'Unbekanntes Produkt';
+  };
+
   const sectionStyles: React.CSSProperties = {
     background: theme.colors.surface,
     padding: theme.spacing.lg,
@@ -120,7 +126,7 @@ const Settings: React.FC = () => {
             }}>
               <tr style={{ background: theme.colors.background }}>
                 <th style={{ padding: theme.spacing.md, textAlign: 'left', width: '20%' }}>Datum</th>
-                <th style={{ padding: theme.spacing.md, textAlign: 'left', width: '20%' }}>Produkt ID</th>
+                <th style={{ padding: theme.spacing.md, textAlign: 'left', width: '20%' }}>Produkt(ID)</th>
                 <th style={{ padding: theme.spacing.md, textAlign: 'left', width: '15%' }}>Menge</th>
                 <th style={{ padding: theme.spacing.md, textAlign: 'left', width: '15%' }}>Preis</th>
                 <th style={{ padding: theme.spacing.md, textAlign: 'left', width: '15%' }}>Trinkgeld</th>
@@ -139,7 +145,16 @@ const Settings: React.FC = () => {
                   <td style={{ padding: theme.spacing.md, whiteSpace: 'nowrap' }}>
                     {formatDate(transaction.timestamp)}
                   </td>
-                  <td style={{ padding: theme.spacing.md }}>{transaction.productId}</td>
+                  <td style={{ padding: theme.spacing.md }}>
+                    <div>{getProductName(transaction.productId)}</div>
+                    <div style={{ 
+                      fontSize: '0.8em', 
+                      color: theme.colors.secondary,
+                      marginTop: '2px' 
+                    }}>
+                      {transaction.productId}
+                    </div>
+                  </td>
                   <td style={{ padding: theme.spacing.md }}>{transaction.quantity}</td>
                   <td style={{ padding: theme.spacing.md }}>{transaction.price.toFixed(2)} €</td>
                   <td style={{ padding: theme.spacing.md }}>{transaction.tip.toFixed(2)} €</td>

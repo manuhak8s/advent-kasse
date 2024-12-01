@@ -90,7 +90,6 @@ const Statistics: React.FC = () => {
 
   const handleSort = (type: SortType) => {
     if (type === sortType) {
-      // Wenn gleicher Typ, dann Richtung umkehren
       const newDirection = sortDirection === 'desc' ? 'asc' : 'desc';
       setSortDirection(newDirection);
       setStats(prev => ({
@@ -98,7 +97,6 @@ const Statistics: React.FC = () => {
         productStats: sortProducts(prev.productStats, type, newDirection)
       }));
     } else {
-      // Wenn neuer Typ, dann absteigend sortieren
       setSortType(type);
       setSortDirection('desc');
       setStats(prev => ({
@@ -197,7 +195,6 @@ const Statistics: React.FC = () => {
     }
   };
 
-  // Styles für das PDF-Layout
   const pdfStyles = {
     container: {
       padding: '20px',
@@ -262,30 +259,48 @@ const Statistics: React.FC = () => {
   };
 
   return (
-    <>
-      {/* Normale Ansicht */}
-      <div style={{ padding: theme.spacing.lg, display: 'flex', flexDirection: 'column', gap: theme.spacing.xl }}>
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <button
-            onClick={handleExportPDF}
-            style={{
-              padding: `${theme.spacing.sm} ${theme.spacing.lg}`,
-              background: theme.colors.secondary,
-              color: theme.colors.textLight,
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}
-          >
-            <span>📄</span>
-            Als PDF exportieren
-          </button>
-        </div>
+    <div style={{ 
+      height: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden'
+    }}>
+      {/* Export Button Container */}
+      <div style={{ 
+        padding: theme.spacing.lg,
+        display: 'flex', 
+        justifyContent: 'flex-end',
+        background: theme.colors.background
+      }}>
+        <button
+          onClick={handleExportPDF}
+          style={{
+            padding: `${theme.spacing.sm} ${theme.spacing.lg}`,
+            background: theme.colors.secondary,
+            color: theme.colors.textLight,
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}
+        >
+          <span>📄</span>
+          Als PDF exportieren
+        </button>
+      </div>
 
-        {/* KPI Kacheln */}
+      {/* Scrollable Main Content */}
+      <div style={{ 
+        flex: 1,
+        overflow: 'auto',
+        padding: `${theme.spacing.lg} ${theme.spacing.lg} ${theme.spacing.xl}`,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: theme.spacing.xl
+      }}>
+        {/* KPI Cards */}
         <div style={{ 
           display: 'grid', 
           gridTemplateColumns: 'repeat(3, 1fr)', 
@@ -305,12 +320,13 @@ const Statistics: React.FC = () => {
           </div>
         </div>
 
-        {/* Produkttabelle */}
+        {/* Product Table */}
         <div style={{
           background: theme.colors.surface,
-          padding: theme.spacing.lg,
+          padding: `${theme.spacing.lg} ${theme.spacing.lg} ${theme.spacing.xl}`,
           borderRadius: '8px',
-          boxShadow: theme.shadows.medium
+          boxShadow: theme.shadows.medium,
+          marginBottom: theme.spacing.xl
         }}>
           <div style={{ 
             display: 'flex', 
@@ -373,11 +389,7 @@ const Statistics: React.FC = () => {
         </div>
       </div>
 
-        
-        {/* ... Rest der normalen Ansicht ... */}
-     
-
-      {/* Versteckte PDF-Version */}
+      {/* Hidden PDF Content */}
       <div ref={pdfContentRef} style={{ ...pdfStyles.container, position: 'absolute', left: '-9999px' }}>
         <div style={pdfStyles.header}>
           <div style={pdfStyles.headerTitle}>Advent-Kasse - Statistikbericht</div>
@@ -420,7 +432,7 @@ const Statistics: React.FC = () => {
           </tbody>
         </table>
       </div>
-    </>
+    </div>
   );
 };
 

@@ -294,24 +294,18 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
 
         <div style={buttonStyles}>
           <button
-            onClick={() => {
-              if (receivedAmount >= finalTotal) {
-                onComplete(receivedAmount, changeAmount, tipAmount);
-              }
-            }}
-            disabled={receivedAmount < finalTotal}
+            onClick={onClose}
             style={{
               flex: 1,
               padding: theme.spacing.md,
-              background: receivedAmount < finalTotal ? theme.colors.border : theme.colors.primary,
-              color: receivedAmount < finalTotal ? theme.colors.text : theme.colors.textLight,
+              background: theme.colors.error,
+              color: theme.colors.textLight,
               border: 'none',
               borderRadius: '4px',
-              cursor: receivedAmount < finalTotal ? 'not-allowed' : 'pointer',
-              opacity: receivedAmount < finalTotal ? 0.7 : 1
+              cursor: 'pointer'
             }}
           >
-            Abschließen
+            Abbrechen
           </button>
           <button
             onClick={() => {
@@ -333,18 +327,24 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
             Zurücksetzen
           </button>
           <button
-            onClick={onClose}
+            onClick={() => {
+              if (receivedAmount >= finalTotal) {
+                onComplete(receivedAmount, changeAmount, tipAmount);
+              }
+            }}
+            disabled={receivedAmount < finalTotal}
             style={{
               flex: 1,
               padding: theme.spacing.md,
-              background: theme.colors.error,
-              color: theme.colors.textLight,
+              background: receivedAmount < finalTotal ? theme.colors.border : theme.colors.primary,
+              color: receivedAmount < finalTotal ? theme.colors.text : theme.colors.textLight,
               border: 'none',
               borderRadius: '4px',
-              cursor: 'pointer'
+              cursor: receivedAmount < finalTotal ? 'not-allowed' : 'pointer',
+              opacity: receivedAmount < finalTotal ? 0.7 : 1
             }}
           >
-            Abbrechen
+            Abschließen
           </button>
         </div>
       </div>

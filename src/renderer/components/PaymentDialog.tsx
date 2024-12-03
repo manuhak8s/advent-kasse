@@ -88,13 +88,15 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
 
   useEffect(() => {
     if (roundUp) {
-      const { tip } = getRoundUpDetails(total + tipAmount);
+      // Berechne das Aufrunden nur auf Basis des ursprünglichen Betrags
+      const { tip } = getRoundUpDetails(total);
       setTipAmount(Number(tip.toFixed(2)));
     }
   }, [roundUp, total]);
 
+  // Berechne den finalen Gesamtbetrag
   const finalTotal = roundUp 
-    ? Math.ceil(total + tipAmount)
+    ? Math.ceil(total)  // Runde nur den Ursprungsbetrag auf
     : total + tipAmount;
 
   useEffect(() => {
